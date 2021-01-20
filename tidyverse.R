@@ -7,14 +7,6 @@ source('./climateData.R')
 allHours[!(allHours %in% shefClimateNoNA$TIMESTAMP)]
 
 
-# shefClimateNoNA %>%
-#   filter(
-#     between(
-#       TIMESTAMP, 
-#       as.POSIXct(paste(year(TIMESTAMP), 11, 28, sep = "-")), 
-#       as.POSIXct(paste(year(TIMESTAMP)+1, 02, 28, sep = "-"))
-#     )
-#   ) %>% print(n=4000)
 
 ###############################################
 ################ QUESTIONS ####################
@@ -23,11 +15,11 @@ allHours[!(allHours %in% shefClimateNoNA$TIMESTAMP)]
 # Q1 difference of avg temp between consecutive years' winter 20 Dec - 20 Mar
 shefClimateNoNA %>%
   filter(
-    between(TIMESTAMP, as.POSIXct("2011-12-20"), as.POSIXct("2012-03-20")) |
-    between(TIMESTAMP, as.POSIXct("2012-12-20"), as.POSIXct("2013-03-20")) |
-    between(TIMESTAMP, as.POSIXct("2013-12-20"), as.POSIXct("2014-03-20")) |
-    between(TIMESTAMP, as.POSIXct("2014-12-20"), as.POSIXct("2015-03-20")) |
-    between(TIMESTAMP, as.POSIXct("2015-12-20"), as.POSIXct("2016-02-29"))
+    between(TIMESTAMP, as_datetime("2011-12-20"), as_datetime("2012-03-20")) |
+    between(TIMESTAMP, as_datetime("2012-12-20"), as_datetime("2013-03-20")) |
+    between(TIMESTAMP, as_datetime("2013-12-20"), as_datetime("2014-03-20")) |
+    between(TIMESTAMP, as_datetime("2014-12-20"), as_datetime("2015-03-20")) |
+    between(TIMESTAMP, as_datetime("2015-12-20"), as_datetime("2016-02-29"))
   ) %>% 
   mutate(
     season = if_else(
@@ -151,15 +143,21 @@ grid.arrange(plot1, plot2, plot3, plot4, plot5, ncol=2)
 #       (AirTC_Avg + 0.066)
 #   ) %>% summarise(FAO56_Mean = mean(FAO56))
 
+FAO56PM <- function(AirTC, solar_radiation, windSpeed, relativeHumidity, pressure, hourly = TRUE) {
+  period <- if(hourly == TRUE) 24 else 1
+  
+  (0.408 * AirTC * solar_radiation + 
+     0.066 * (900 / period / (AirTC + 273)) * 
+     (windSpeed * (pressure - (relativeHumidity) * pressure))
+  ) / 
+    (AirTC + 0.066 * (1 + 0.34 * windSpeed))
+}
+
 
 shefClimateNoNA %>% 
-  filter(between(TIMESTAMP, as.POSIXct("2011-03-01"), as.POSIXct("2012-03-01"))) %>%
+  filter(between(TIMESTAMP, as_datetime("2011-03-01"), as_datetime("2012-03-01"))) %>%
   mutate(
-    FAO56 = (0.408 * AirTC_Avg * (Slr_kW * 3.6) + 
-               0.066 * (900 / 24 / (AirTC_Avg + 273)) * 
-               (WS_ms_Avg * (BP_mbar / 1000 - (RH / 100) * BP_mbar / 1000))
-             ) / 
-      (AirTC_Avg + 0.066 * (1 + 0.34 * WS_ms_Avg))
+    FAO56 = FAO56PM(AirTC_Avg, Slr_kW*3.6, WS_ms_Avg, RH/100, BP_mbar/1000, hourly = TRUE)
   ) %>%
   ggplot(aes(x = TIMESTAMP, y = FAO56)) +
   geom_bin2d()
@@ -220,4 +218,4 @@ shefVWC %>%
     axis.line = element_line(color = "#dbdbdb")
   )
 
-  
+

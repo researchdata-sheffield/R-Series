@@ -67,8 +67,8 @@ head(shefClimate)
 tail(shefClimate)
 
 allHours <- seq(
-  from = as.POSIXct("2011-03-01", tz = "UTC"),
-  to = as.POSIXct("2016-02-29 23:00:00", tz = "UTC"),
+  from = as_datetime("2011-03-01", tz = "UTC"),
+  to = as_datetime("2016-02-29 23:00:00", tz = "UTC"),
   by = "hour"
 )
 
@@ -90,13 +90,13 @@ imputeClimateData <- function(myDataset, missingHours) {
     if (lastHour %in% myDataset$TIMESTAMP) {
       # add missing hour from last hour
       lastHourData <- myDataset %>% filter(TIMESTAMP == lastHour)
-      lastHourData$TIMESTAMP = as.POSIXct(missingHour, origin="1970-01-01", tz = "UTC")
+      lastHourData$TIMESTAMP = as_datetime(missingHour, tz = "UTC")
       
       newDataset <- newDataset %>% add_row(lastHourData)
       
     } else {
       # add missing hour using other year's average
-      missingHourCT <- as.POSIXct(missingHour, origin="1970-01-01", tz = "UTC")
+      missingHourCT <- as_datetime(missingHour, tz = "UTC")
       
       month = month(missingHourCT) 
       day = day(missingHourCT)
