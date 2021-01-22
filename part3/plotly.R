@@ -40,6 +40,42 @@ plot1 <- shefClimateNoNA %>%
 ggplotly(plot1, tooltip = c("x", "AirTC_Avg"))
 
 
-########################
-## Climate data in 3D
-########################
+###################
+## AirTC Heatmap ##
+###################
+shefClimateHeatmap <- shefClimateNoNA %>%
+  filter(
+    between(TIMESTAMP, as.POSIXct("2015-01-01"), as.POSIXct("2016-01-01"))
+  ) %>% 
+  mutate(
+    month = month(TIMESTAMP, label = TRUE),
+    day = day(TIMESTAMP)
+  ) %>%
+  select(AirTC_Avg, month, day) %>% 
+  group_by(month, day) %>% 
+  summarise(AirTC_Avg = mean(AirTC_Avg)) %>% 
+  pivot_wider(names_from = day, values_from = AirTC_Avg) %>%
+  ungroup() %>%
+  select(-c(month)) %>% 
+  as.matrix()
+
+myHeatmap <- plot_ly(
+  x = sprintf("%d", 1:31),
+  y = month.abb[1:12],
+  z = shefClimateHeatmap, 
+  type = "heatmap"
+) 
+
+myHeatmap %>% 
+  layout(
+    title = "Daily average temperature in Sheffield (2015)"
+  ) %>%
+  add_trace(
+    showscale = FALSE,
+    hovertemplate = paste(
+      '<b>Date</b>: %{x} %{y}', 
+      '<br><b>Temperature</b>: %{z:.2f} C',
+      '<extra></extra>' # add EXTRA tag to hide trace name
+    )
+  )
+
