@@ -17,3 +17,9 @@ shefClimateDf <- shefClimateNoNA %>%
 hchart(shefClimateDf, "line", hcaes(x = TIMESTAMP, y = AirTC_Avg, group = season))
 
 
+library(DT)
+
+
+
+datatable(shefClimateNoNA)
+
