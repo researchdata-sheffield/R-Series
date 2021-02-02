@@ -57,12 +57,6 @@ server <- function(input, output, session) {
   
   # Time series for air temperatures
   output$timeSeries <- renderHighchart({
-    # hc <- highchart() %>% hc_xAxis(type = 'datetime') %>%
-    #   hc_add_series(
-    #     data = shefClimateDf, 
-    #     type = "line",
-    #     hcaes(x = TIMESTAMP, y = AirTC_Avg)
-    #   )
     hchart(
       shefClimateNoNA %>% 
         filter(
@@ -73,13 +67,19 @@ server <- function(input, output, session) {
           )
         ) %>% 
         mutate(
-          TIMESTAMP = format.Date(TIMESTAMP, "%m-%d")
+          TIMESTAMP = format.Date(TIMESTAMP, "%d %b %y")
         ),
       type = "line",
       hcaes(x = TIMESTAMP, y = AirTC_Avg),
       name = "Air temperature"
-    )
+    ) %>%
+      hc_xAxis(
+        tickAmount = 10,
+        tickInterval = 30,
+        labels = list(format = "{value:%b %y}")
+      )
   })
+  
 
 }
 
