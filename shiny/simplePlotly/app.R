@@ -5,7 +5,8 @@ library(lubridate)
 library(plotly)
 
 # INSERT Dataset HERE
-source('./climateData.R')
+source('./climateData.R') 
+# OR source('climateData.R') if placed in the same directory
 
 histogramName <- c("Wind speed", "Air temperature", "Relative Humidity", "Solar radiation", "Barometric Pressure")
 

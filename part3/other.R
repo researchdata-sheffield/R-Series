@@ -22,4 +22,3 @@ library(DT)
 
 
 datatable(shefClimateNoNA)
-

@@ -3,13 +3,17 @@ library(shiny)
 library(tidyverse)
 library(lubridate)
 library(plotly)
+library(shinythemes)
 
 # INSERT Dataset HERE
 source('./climateData.R')
 
 
-
+##########################
+##### User interface #####
+##########################
 ui <- fluidPage(
+  theme = shinytheme("sandstone"),
   navbarPage(
     ##########
     ## Page 1
@@ -95,6 +99,7 @@ ui <- fluidPage(
     ## Nav menu
     ############
     navbarMenu(
+      "More",
       tabPanel(
         "Climate Data Time series",
         sidebarLayout(
@@ -118,7 +123,9 @@ ui <- fluidPage(
 )
 
 
-
+###########################
+##### Server function #####
+###########################
 server <- function(input, output, session) {
   # Filter data based on selections
   output$dataTable <- DT::renderDataTable(DT::datatable({
@@ -166,9 +173,36 @@ server <- function(input, output, session) {
       figs[length(figs)+1] <- list(fig)
     }
     
-    subplot(figs, nrows = length(input$histOptions), heights = 1)
+    subplot(figs, nrows = length(input$histOptions))
+  })
+  
+  # Time series for air temperatures
+  output$timeSeries <- renderPlotly({
+    shefClimateNoNA %>% 
+      filter(
+        between(
+          TIMESTAMP, 
+          as_datetime(as.character(input$timeDateRange[1])), 
+          as_datetime(as.character(input$timeDateRange[2]))
+        )
+      ) %>% 
+      plot_ly(
+        x = ~TIMESTAMP, 
+        y = ~AirTC_Avg, 
+        type = 'scatter', 
+        mode = 'lines',
+        line = list(color = '#251d5a', width = 1.5)
+      ) %>%
+      layout(
+        title = "Average air temperature over the selected time frame",
+        xaxis = list(title = "Date"),
+        yaxis = list(title = "Air temperature")
+      )
   })
 }
 
-
+##################################
+##### Call shinyApp function #####
+##################################
 shinyApp(ui = ui, server = server)
+
