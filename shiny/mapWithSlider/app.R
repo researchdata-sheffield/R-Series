@@ -18,7 +18,7 @@ ui <- fluidPage(
   
   # Title 
   titlePanel(
-    h1("Scatter Plots on Maps", style = "padding-bottom: 20px")
+    h1("Map + slider", style = "padding-bottom: 20px")
   ),
   
   # Sidebar layout
@@ -31,10 +31,19 @@ ui <- fluidPage(
         min = dateRange[1], max = dateRange[2],
         separator = " to ", format = "dd/mm/yyyy",
         startview = 'month', weekstart = 1
-      )
+      ),
+      sliderInput(
+        "animation", 
+        "Looping Date:",
+        min = dateRange[1], max = dateRange[2],
+        value = dateRange[2], timeFormat="%Y-%m-%d",
+        animate = animationOptions(interval = 200, loop = FALSE)
+      ),
     ),
     mainPanel(
+      #verbatimTextOutput("text1"),
       plotlyOutput(outputId = "map")
+
     )
   )
 )
@@ -43,17 +52,27 @@ ui <- fluidPage(
 ##### Server function #####
 ###########################
 server <- function(input, output, session) {
-
+  # Change slider range when Dates are changed
+  observeEvent(input$dateRange, {
+    updateSliderInput(
+      session, "animation", 
+      min = as_date(as.character(input$dateRange[1])),
+      max = as_date(as.character(input$dateRange[2]))
+    )
+  })
+  
+  # output$text1 = renderText({ as.character(input$animation)  })
+  
   output$map = renderPlotly({
     filterData <- joinDataItinerary %>%
       filter(
         between(
           Date,
           as_date(as.character(input$dateRange[1])),
-          as_date(as.character(input$dateRange[2]))
+          as_date(as.character(input$animation))
         )
       )
-    
+  
     # Scattergeo plot properties
     g <- list(
       scope = 'europe',
@@ -68,7 +87,7 @@ server <- function(input, output, session) {
     )
 
     # Add layers
-    # Border -> Peace -> War ->Castles
+    # Border -> Peace -> War -> Current move & text -> Castles
     fig <- plot_geo(dataBorders, lat = ~latitude, lon = ~longitude, height = 700)
     fig <- fig %>%
       add_markers(
@@ -83,7 +102,7 @@ server <- function(input, output, session) {
         x = ~latitude,
         y = ~longitude,
         text = ~paste(
-          paste(Place, County, sep = ", "),
+          paste(Place, County, sep = ",   "),
           paste("Date: ", as.character.Date(Date, "%d %B %Y")),
           sep = "<br>"
         ),
@@ -108,6 +127,33 @@ server <- function(input, output, session) {
         hoverinfo = "text"
       ) %>%
       add_markers(
+        name = "Current move",
+        data = filterData %>% filter(row_number() == n()),
+        x = ~latitude,
+        y = ~longitude,
+        marker = list(color = "#5e85e6", line = list(color = "#00247d")),
+        symbol = I("square"),
+        size = I(40),
+      ) %>%
+      add_text(
+        name = "",
+        data = filterData %>% filter(row_number() == n()),
+        x = ~latitude,
+        y = ~longitude,
+        text = ~paste(
+          "",
+          paste(Place, County, sep = ", "),
+          paste(as.character.Date(Date, "%d %B %Y"), " (", `peace or war`, ")", sep = ""),
+          sep = "<br>"
+        ),
+        textfont = list(
+          size = 12,
+          color = toRGB("grey50")
+        ),
+        textposition = "bottom right",
+        showlegend = FALSE
+      ) %>%
+      add_markers(
         name = "Castles",
         data = dataCastles,
         x = ~latitude,
@@ -122,7 +168,7 @@ server <- function(input, output, session) {
         size = I(12),
         hoverinfo = "text"
       )
-
+    #fig <- fig %>% colorbar(title = "Year")
     fig <- fig %>% layout(
       title = 'Mapping The Itinerary of King Edward I',
       geo = g,
