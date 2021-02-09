@@ -6,6 +6,7 @@ library(plotly)
 
 
 # INSERT Dataset HERE
+# Get current directory path
 directoryPath <- dirname(rstudioapi::getActiveDocumentContext()$path)
 source(paste(directoryPath, '/data.R', sep = ''))
 
@@ -168,13 +169,14 @@ server <- function(input, output, session) {
         size = I(12),
         hoverinfo = "text"
       )
-    #fig <- fig %>% colorbar(title = "Year")
+
     fig <- fig %>% layout(
       title = 'Mapping The Itinerary of King Edward I',
       geo = g,
       margin = list(l=0,r=0,t=50,b=0,pad=0)
     )
-
+    
+    # return the chart
     fig
   })
 }

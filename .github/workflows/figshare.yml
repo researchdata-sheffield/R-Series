@@ -1,0 +1,49 @@
+name: Upload to Figshare
+on: [ push ]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Upload Part 1 Directory
+        uses: figshare/github-upload-action@v1.1
+        with:
+          FIGSHARE_TOKEN: ${{ FIGSHARE_TOKEN }}
+          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ARTICLE_ID: 13802579
+          DATA_DIR: 'part1'
+
+      - name: Upload Part 2 Directory
+        uses: figshare/github-upload-action@v1.1
+        with:
+          FIGSHARE_TOKEN: ${{ FIGSHARE_TOKEN }}
+          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ARTICLE_ID: 13802579
+          DATA_DIR: 'part2'
+
+      - name: Upload Part 3 Directory
+        uses: figshare/github-upload-action@v1.1
+        with:
+          FIGSHARE_TOKEN: ${{ FIGSHARE_TOKEN }}
+          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ARTICLE_ID: 13802579
+          DATA_DIR: 'part3'
+
+      - name: Upload Shiny Directory
+        uses: figshare/github-upload-action@v1.1
+        with:
+          FIGSHARE_TOKEN: ${{ FIGSHARE_TOKEN }}
+          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ARTICLE_ID: 13802579
+          DATA_DIR: 'shiny'
+
+      - name: Upload Root Directory
+        uses: figshare/github-upload-action@v1.1
+        with:
+          FIGSHARE_TOKEN: ${{ FIGSHARE_TOKEN }}
+          FIGSHARE_ENDPOINT: 'https://api.figshare.com/v2'
+          FIGSHARE_ARTICLE_ID: 13802579
+          DATA_DIR: '/'
+        
